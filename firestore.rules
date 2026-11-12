@@ -1,0 +1,21 @@
+rules_version = '2';
+// Reglas de Firestore para proyecto_final_v3.html
+// Copia todo este texto en: Consola de Firebase → Firestore Database → Reglas → Publicar.
+// Cada persona crea su cuenta con su correo; solo entran correos verificados. No hay administrador.
+service cloud.firestore {
+  match /databases/{database}/documents {
+    function firmado() { return request.auth != null; }
+    function verificado() { return firmado() && request.auth.token.email_verified == true; }
+
+    // Perfil de cada persona: solo ella lo lee y lo escribe.
+    match /usuarios/{uid} {
+      allow read, create, update: if firmado() && request.auth.uid == uid;
+    }
+
+    // Datos del programa: cualquier cuenta con correo verificado.
+    match /materiales/{id}  { allow read, write: if verificado(); }
+    match /movimientos/{id} { allow read, write: if verificado(); }
+    match /calculos/{id}    { allow read, write: if verificado(); }
+    match /compartido/{id}  { allow read, write: if verificado(); }
+  }
+}
